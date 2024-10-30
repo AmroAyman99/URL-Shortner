@@ -15,10 +15,10 @@ class URLshortnerModel{
         const connection = await pool.getConnection();
         try {
             const query = 'SELECT original_url FROM urls WHERE short_url = ?';
-            console.log(`Executing query: ${query} with shortUrl: ${shortUrl}`);
+            
             const [rows] = await connection.query(query, [shortUrl]);
-            console.log('rows : -------------    ', rows);
-            if (rows.length === 0) {
+            
+            if ( !rows && rows.length === 0) {
 
                 throw new Error('URL not found in model');
             }

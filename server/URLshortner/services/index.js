@@ -1,7 +1,7 @@
 import URLshortnerModel from '../models/index.js';
 import logger from '../../../common/utils/logger/index.js';
 import URLutils from '../../../common/utils/urlUtils/index.js';
-import { Console } from 'console';
+
 
 const serviceName = 'server.URLshortner.services.index';
 class URLshortnerService{
@@ -9,13 +9,12 @@ class URLshortnerService{
         const functionName = 'createShortUrl';
         try {
 
-
             if (!URLutils.isValidUrl(originalUrl)) {
                 throw new Error('Invalid URL');
 
             }
             const shortUrl = URLutils.generateShortUrl();
-            console.log('shortUrl : -------------    ', shortUrl);
+            
             if (!shortUrl) {
                 throw new Error('Internal Server Error  shortUrl');
                 
@@ -25,7 +24,7 @@ class URLshortnerService{
                 throw new Error('Internal Server Error');
             }
             return shortUrl;
-           
+             
           
         } catch (error) {
             logger.error(serviceName, functionName, `Error: ${error.message}`);
@@ -37,7 +36,7 @@ class URLshortnerService{
     static async getOriginalUrl(shortUrl) {
         const functionName = 'getOriginalUrl';
         try {
-            console.log('shortUrl in service : -------------    ', shortUrl);
+            
             const originalUrl = await URLshortnerModel.getOriginalUrl(shortUrl);
             console.log('originalUrl in service : -------------    ', originalUrl);
             if (!originalUrl) {

@@ -19,12 +19,10 @@ class URLshortnerController {
     static async redirectURL(req, res) {
         try {
             const  shortUrl = req.params.shortURL;
-            console.log('shortUrl : -------------    ', shortUrl);
             if (_.isEmpty(shortUrl)) {
                 return res.status(statusCodes.BAD_REQUEST).json({ error: 'Short URL is required' });
             }
             const originalUrl = await URLshortnerService.getOriginalUrl(shortUrl);
-            console.log('originalUrl in controller : -------------    ', originalUrl);
             if (_.isEmpty(originalUrl)) {
                 return res.status(statusCodes.NOT_FOUND).json({ error: 'URL not found' });
             }

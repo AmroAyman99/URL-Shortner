@@ -1,30 +1,55 @@
 import { pool } from '../../../common/config/db.js';
+import { PrismaClient } from '@prisma/client';
+import logger from '../../../common/utils/logger/index.js';
+
+const prisma = new PrismaClient()
+
+const modelName = 'server.URLshortner.models.index';
 
 class URLshortnerModel{
+
     static async createShortUrl(originalUrl, shortUrl) {
-        const connection = await pool.getConnection();
+        const functionName = 'createShortUrl';
         try {
-            const query = 'INSERT INTO urls (original_url, short_url) VALUES (?, ?)';
-            const [result] = await connection.query(query, [originalUrl, shortUrl]);
-            return result.affectedRows === 1;
+            const result = await prisma.url.create({
+                data: {
+                    original_url: originalUrl,
+                    short_url: shortUrl
+                }
+            });
+            if (!result) {
+                throw new Error('Internal Server Error - shortUrl was not created');    
+            }
+            return result;
+
+        } catch(error) {
+            logger.error(modelName, functionName, `Error: ${error.message}`);
+            throw error; 
         } finally {
-            connection.release();
+             //disconnect prisma
+            await prisma.$disconnect()
+            
         }
     }
     static async getOriginalUrl(shortUrl) {
-        const connection = await pool.getConnection();
+        const functionName = 'getOriginalUrl';
         try {
-            const query = 'SELECT original_url FROM urls WHERE short_url = ?';
-            
-            const [rows] = await connection.query(query, [shortUrl]);
-            
-            if ( !rows && rows.length === 0) {
-
-                throw new Error('URL not found in model');
+            const result = await prisma.url.findUnique({
+                where: {
+                    short_url: shortUrl
+                }
+            });
+            if (!result) {
+                throw new Error('Internal Server Error - No URL found');    
             }
-            return rows[0].original_url;
-        } finally {
-            connection.release();
+            return result ? result.original_url : null;
+        }catch(error) {
+            logger.error(modelName, functionName, `Error: ${error.message}`);
+            throw error;
+        }
+         finally {
+            // Disconnect Prisma
+            await prisma.$disconnect();
         }
     }
 }

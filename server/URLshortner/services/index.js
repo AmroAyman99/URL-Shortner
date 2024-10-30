@@ -14,16 +14,15 @@ class URLshortnerService{
 
             }
             const shortUrl = URLutils.generateShortUrl();
-            
             if (!shortUrl) {
                 throw new Error('Internal Server Error  shortUrl');
                 
             }
             const URLshorted = await URLshortnerModel.createShortUrl(originalUrl, shortUrl);
             if (!URLshorted) {
-                throw new Error('Internal Server Error');
+                throw new Error('Internal Server Error - shortUrl was not created');
             }
-            return shortUrl;
+            return URLshorted.short_url;
              
           
         } catch (error) {
@@ -38,7 +37,6 @@ class URLshortnerService{
         try {
             
             const originalUrl = await URLshortnerModel.getOriginalUrl(shortUrl);
-            console.log('originalUrl in service : -------------    ', originalUrl);
             if (!originalUrl) {
                 throw new Error('URL not found');
             }

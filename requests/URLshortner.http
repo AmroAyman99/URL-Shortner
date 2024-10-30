@@ -3,7 +3,7 @@ POST http://localhost:6000/api/v1/URLshortner/shorten
 Content-Type: application/json
 
 {
-    "originalUrl": "https://www.youtube.com/"
+    "originalUrl": "h/www.youtube.com/"
 }
 ###
-GET http://localhost:6000/api/v1/URLshortner/BXw5ydB2N
+GET http://localhost:6000/api/v1/URLshortner/WJThegqmi

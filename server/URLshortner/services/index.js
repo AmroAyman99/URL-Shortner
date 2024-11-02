@@ -3,7 +3,7 @@ import logger from '../../../common/utils/logger/index.js';
 import URLutils from '../../../common/utils/urlUtils/index.js';
 import redisCache from '../../../common/helpers/cach.js';
 import AccessLogModel from '../models/accessLog.js';
-
+import URLshortnerMiddleware from   '../middleware/index.js';
 
 const serviceName = 'server.URLshortner.services.index';
 class URLshortnerService{
@@ -29,17 +29,11 @@ class URLshortnerService{
             if (existingShortUrl) {
                 // Cache the short URL
                 await redisCache.setCache(existingShortUrl.short_url,existingShortUrl.original_url,existingShortUrl.id);
-
+                // Increment visit count
                 await URLshortnerModel.incrementVisitCount(existingShortUrl.short_url);
-                const AccessLog = await AccessLogModel.createAccessLog(clientIp, existingShortUrl.id);
-                if (!AccessLog) {
-                    //throw a warning
-                    logger.warn(serviceName, functionName, `Access Log was not created`);
-                }
-                else{
-                    logger.info(serviceName, functionName, `Access Log is created: Access Time: ${AccessLog.AccessTime}`+
-                        `   IP Address: ${AccessLog.IPaddress}`);
-                }
+                // Create access log
+                await URLshortnerMiddleware.createAccessLog(clientIp, existingShortUrl.id);
+                
                 return existingShortUrl.short_url; // already exists in DB
             }
             
@@ -57,14 +51,9 @@ class URLshortnerService{
             if (!URLshorted) {
                 throw new Error('Internal Server Error - shortUrl was not created');
             }
-            const AccessLog = await AccessLogModel.createAccessLog(clientIp, URLshorted.id);
-            if (!AccessLog) {
-                //throw a warning
-                logger.warn(serviceName, functionName, `Access Log was not created`);
-            }
-            else{
-                logger.info(serviceName, functionName, `Access Log is created: ${AccessLog}`);
-            }
+
+            // Create access log
+            await URLshortnerMiddleware.createAccessLog(clientIp, URLshorted.id);
 
             // Cache the short URL
             await redisCache.setCache(URLshorted.short_url,URLshorted.original_url,URLshorted.id);
@@ -92,15 +81,8 @@ class URLshortnerService{
                 await URLshortnerModel.incrementVisitCount(shortUrl);
                 const { value: originalUrl, urlId } = cachedUrl;
                 // Create access log
-                const AccessLog = await AccessLogModel.createAccessLog(clientIp, urlId);
-                if (!AccessLog) {
-                    //throw a warning
-                    logger.warn(serviceName, functionName, `Access Log was not created`);
-                }
-                else{
-                    logger.info(serviceName, functionName, `Access Log is created: Access Time: ${AccessLog.AccessTime}`+
-                        `   IP Address: ${AccessLog.IPaddress}`);
-                }
+                await URLshortnerMiddleware.createAccessLog(clientIp, urlId);
+                // Return original URL
                 return originalUrl;
             }
 

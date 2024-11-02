@@ -63,7 +63,7 @@ class URLshortnerModel{
                 }
             });
           
-            return result ? result.short_url : null;
+            return result ? result : null;
         }catch(error) {
             logger.error(modelName, functionName, `Error: ${error.message}`);
             throw error;

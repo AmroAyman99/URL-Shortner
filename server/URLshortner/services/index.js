@@ -2,10 +2,12 @@ import URLshortnerModel from '../models/index.js';
 import logger from '../../../common/utils/logger/index.js';
 import URLutils from '../../../common/utils/urlUtils/index.js';
 import redisCache from '../../../common/helpers/cach.js';
+import AccessLogModel from '../models/accessLog.js';
+
 
 const serviceName = 'server.URLshortner.services.index';
 class URLshortnerService{
-    static async createShortUrl(originalUrl, expirationDate) {
+    static async createShortUrl(originalUrl, expirationDate, clientIp) {
         const functionName = 'createShortUrl';
         try {
 
@@ -19,13 +21,30 @@ class URLshortnerService{
 
             // Convert expiration date to Date object
             const expiryDate = new Date(expirationDate);
+
             
             // Check if URL already exists
             const existingShortUrl = await URLshortnerModel.getShortUrl(originalUrl);
+            
             if (existingShortUrl) {
-                return existingShortUrl;
+                // Cache the short URL
+                await redisCache.setCache(existingShortUrl.short_url,existingShortUrl.original_url,existingShortUrl.id);
+
+                await URLshortnerModel.incrementVisitCount(existingShortUrl.short_url);
+                const AccessLog = await AccessLogModel.createAccessLog(clientIp, existingShortUrl.id);
+                if (!AccessLog) {
+                    //throw a warning
+                    logger.warn(serviceName, functionName, `Access Log was not created`);
+                }
+                else{
+                    logger.info(serviceName, functionName, `Access Log is created: Access Time: ${AccessLog.AccessTime}`+
+                        `   IP Address: ${AccessLog.IPaddress}`);
+                }
+                return existingShortUrl.short_url; // already exists in DB
             }
             
+            // --------------------------- URL is never shortened before --------------------------------
+
             // Generate short URL
             const shortUrl = URLutils.generateShortUrl();
             if (!shortUrl) {
@@ -38,8 +57,18 @@ class URLshortnerService{
             if (!URLshorted) {
                 throw new Error('Internal Server Error - shortUrl was not created');
             }
+            const AccessLog = await AccessLogModel.createAccessLog(clientIp, URLshorted.id);
+            if (!AccessLog) {
+                //throw a warning
+                logger.warn(serviceName, functionName, `Access Log was not created`);
+            }
+            else{
+                logger.info(serviceName, functionName, `Access Log is created: ${AccessLog}`);
+            }
+
             // Cache the short URL
-            await redisCache.setCache(URLshorted.short_url,URLshorted.original_url);
+            await redisCache.setCache(URLshorted.short_url,URLshorted.original_url,URLshorted.id);
+
            
             // Return short URL
             return URLshorted.short_url; 
@@ -51,14 +80,28 @@ class URLshortnerService{
         }
     }
 
-    static async getOriginalUrl(shortUrl) {
+
+
+    static async getOriginalUrl(shortUrl, clientIp) {
         const functionName = 'getOriginalUrl';
         try {
              // Check cache first
             const cachedUrl = await redisCache.getCache(shortUrl);
             if (cachedUrl) {
+                // Increment visit count
                 await URLshortnerModel.incrementVisitCount(shortUrl);
-                return cachedUrl;
+                const { value: originalUrl, urlId } = cachedUrl;
+                // Create access log
+                const AccessLog = await AccessLogModel.createAccessLog(clientIp, urlId);
+                if (!AccessLog) {
+                    //throw a warning
+                    logger.warn(serviceName, functionName, `Access Log was not created`);
+                }
+                else{
+                    logger.info(serviceName, functionName, `Access Log is created: Access Time: ${AccessLog.AccessTime}`+
+                        `   IP Address: ${AccessLog.IPaddress}`);
+                }
+                return originalUrl;
             }
 
             const originalUrl = await URLshortnerModel.getOriginalUrl(shortUrl);

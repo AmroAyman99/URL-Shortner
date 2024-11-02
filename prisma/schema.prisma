@@ -19,4 +19,12 @@ model Url {
   short_url    String   @unique
   expirationDate DateTime?
   visitCount  Int      @default(0)
+  accessLogs     AccessLog[] @relation("UrlAccessLogs")
+}
+model AccessLog {
+  id        Int      @id @default(autoincrement())
+  url       Url      @relation("UrlAccessLogs", fields: [urlId], references: [id])
+  urlId     Int
+  AccessTime DateTime @default(now())
+  IPaddress String
 }

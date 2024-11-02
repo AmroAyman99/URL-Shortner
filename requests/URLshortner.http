@@ -3,8 +3,8 @@ POST http://localhost:6000/api/v1/URLshortner/shorten
 Content-Type: application/json
 
 {
-    "originalUrl": "https://www.youtube.com/",
+    "originalUrl": "https://www.instagram.com/",
     "expirationDate": "2024-11-03"
 }
 ###
-GET http://localhost:6000/api/v1/URLshortner/WJThegqmi
+GET http://localhost:6000/api/v1/URLshortner/nhFdePWLX

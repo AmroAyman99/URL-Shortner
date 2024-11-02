@@ -1,0 +1,12 @@
+-- CreateTable
+CREATE TABLE `AccessLog` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `urlId` INTEGER NOT NULL,
+    `AcceccTime` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `IPAddress` VARCHAR(191) NOT NULL,
+
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- AddForeignKey
+ALTER TABLE `AccessLog` ADD CONSTRAINT `AccessLog_urlId_fkey` FOREIGN KEY (`urlId`) REFERENCES `Url`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;

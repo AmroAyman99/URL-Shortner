@@ -33,7 +33,7 @@ const PORT = process.env.PORT || 6000;
 app.use(API_BASE_PATH, mainRouter, ErrorHandler);
 
 // Error handler
-
+app.set('trust proxy', true);
 
 app.listen(PORT, () => {
     logger.info(serviceName, 'app.listen', `Server is running on PORT ${PORT}`);

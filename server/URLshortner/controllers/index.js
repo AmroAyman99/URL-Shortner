@@ -7,6 +7,8 @@ class URLshortnerController {
         try {
             const  originalUrl  = req.body.originalUrl;
             const  expirationDate  = req.body.expirationDate;
+            const clientIp = req.ip;
+
             console.log("original URL in controller ",originalUrl);
             if (_.isEmpty(originalUrl)) {
                 return res.status(statusCodes.BAD_REQUEST).json({ error: 'Original URL is required' });
@@ -18,7 +20,7 @@ class URLshortnerController {
                   expiryDate = new Date(currentDate.setDate(currentDate.getDate() + 30));
               }
              
-              const shortUrl = await URLshortnerService.createShortUrl(originalUrl, expiryDate);
+              const shortUrl = await URLshortnerService.createShortUrl(originalUrl, expiryDate, clientIp,);
               return res.status(statusCodes.OK).json({ shortUrl: shortUrl });
         } catch (error) {
             return res.status(statusCodes.INTERNAL_SERVER_ERROR).json({ error: error.message });
@@ -28,10 +30,11 @@ class URLshortnerController {
     static async redirectURL(req, res) {
         try {
             const  shortUrl = req.params.shortURL;
+            const clientIp = req.ip;
             if (_.isEmpty(shortUrl)) {
                 return res.status(statusCodes.BAD_REQUEST).json({ error: 'Short URL is required' });
             }
-            const originalUrl = await URLshortnerService.getOriginalUrl(shortUrl);
+            const originalUrl = await URLshortnerService.getOriginalUrl(shortUrl, clientIp);
             if (_.isEmpty(originalUrl)) {
                 return res.status(statusCodes.NOT_FOUND).json({ error: 'URL not found' });
             }

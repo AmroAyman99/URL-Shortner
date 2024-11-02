@@ -8,9 +8,10 @@ let client;
 
 
 class redisCache {
-  static async setCache(key, value, expiry = 3600) {
+  static async setCache(key, value, urlId, expiry = 3600) {
     try {
-      await client.set(key, value, 'EX', expiry);
+      const cacheValue = JSON.stringify({ value, urlId });
+      await client.set(key, cacheValue, 'EX', expiry);
     } catch (error) {
       console.error(error);
     }
@@ -19,13 +20,21 @@ class redisCache {
   // getting value from cache
   static async getCache(key) {
     try {
-      const value = await client.get(key);
-      value ? console.log('Cache hit', value) : console.log('Cache miss');
-      return value;
+      const cacheValue = await client.get(key);
+      if (cacheValue) {
+        const { value, urlId } = JSON.parse(cacheValue);
+        console.log('Cache hit', value, urlId);
+        return { value, urlId };
+      } else {
+        console.log('Cache miss');
+        return null;
+      }
     } catch (error) {
       console.error(error);
     }
   }
+
+
 }
 
 // Export the class

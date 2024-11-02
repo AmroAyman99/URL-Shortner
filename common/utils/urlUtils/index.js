@@ -11,6 +11,17 @@ class URLutils{
         const shortUrl = shortid.generate();
         return shortUrl;
     }
+
+    static  isValidExpirationDate(expirationDate) {
+        const expiryDateObj = new Date(expirationDate);
+        const currentDate = new Date();
+    
+        if (isNaN(expiryDateObj.getTime()) || expiryDateObj <= currentDate) {
+            return false;
+        }
+        return true;
+    }
+
 }
 
 export default URLutils;

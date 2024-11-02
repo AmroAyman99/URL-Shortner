@@ -7,6 +7,8 @@ import cors from 'cors'
 import logger from "./common/utils/logger/index.js";
 import ErrorHandler from "./common/middleware/errorHandler/index.js";
 import mainRouter from './server/index.js';
+import cron from 'node-cron';
+import URLshortnerService from './server/URLshortner/services/index.js';
 
 const serviceName = 'URLshortner.index';
 
@@ -36,3 +38,10 @@ app.use(API_BASE_PATH, mainRouter, ErrorHandler);
 app.listen(PORT, () => {
     logger.info(serviceName, 'app.listen', `Server is running on PORT ${PORT}`);
     });
+
+
+// Schedule the cron job to run daily at midnight
+cron.schedule('0 0 * * *', async () => {
+    logger.info(serviceName, 'cron', 'Running daily cleanup of expired URLs');
+    await URLshortnerService.deleteExpiredURLs();
+});

@@ -17,4 +17,6 @@ model Url {
   id           Int      @id @default(autoincrement())
   original_url String
   short_url    String   @unique
+  expirationDate DateTime?
+  visitCount  Int      @default(0)
 }

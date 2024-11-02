@@ -5,12 +5,21 @@ import statusCodes from 'http-status-codes';
 class URLshortnerController {
     static async shortenURL(req, res) {
         try {
-            const { originalUrl } = req.body;
+            const  originalUrl  = req.body.originalUrl;
+            const  expirationDate  = req.body.expirationDate;
+            console.log("original URL in controller ",originalUrl);
             if (_.isEmpty(originalUrl)) {
                 return res.status(statusCodes.BAD_REQUEST).json({ error: 'Original URL is required' });
             }
-            const shortUrl = await URLshortnerService.createShortUrl(originalUrl);
-            return res.status(statusCodes.OK).json({ shortUrl: shortUrl });
+              // Set default expiration date to 30 days from now if not provided
+              let expiryDate = expirationDate;
+              if (_.isEmpty(expirationDate)) {
+                  const currentDate = new Date();
+                  expiryDate = new Date(currentDate.setDate(currentDate.getDate() + 30));
+              }
+             
+              const shortUrl = await URLshortnerService.createShortUrl(originalUrl, expiryDate);
+              return res.status(statusCodes.OK).json({ shortUrl: shortUrl });
         } catch (error) {
             return res.status(statusCodes.INTERNAL_SERVER_ERROR).json({ error: error.message });
         }

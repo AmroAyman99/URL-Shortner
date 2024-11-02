@@ -3,7 +3,8 @@ POST http://localhost:6000/api/v1/URLshortner/shorten
 Content-Type: application/json
 
 {
-    "originalUrl": "h/www.youtube.com/"
+    "originalUrl": "https://www.youtube.com/",
+    "expirationDate": "2024-11-03"
 }
 ###
 GET http://localhost:6000/api/v1/URLshortner/WJThegqmi

@@ -19,6 +19,8 @@ model Url {
   short_url    String   @unique
   expirationDate DateTime?
   visitCount  Int      @default(0)
+  user           User?       @relation("UserUrls", fields: [userId], references: [id])
+  userId         Int?
   accessLogs     AccessLog[] @relation("UrlAccessLogs")
 }
 model AccessLog {
@@ -27,4 +29,12 @@ model AccessLog {
   urlId     Int
   AccessTime DateTime @default(now())
   IPaddress String
+}
+
+model User {
+  id       Int      @id @default(autoincrement())
+  userName String   @unique
+  email    String?   
+  password String  
+  urls     Url[]   @relation("UserUrls")
 }

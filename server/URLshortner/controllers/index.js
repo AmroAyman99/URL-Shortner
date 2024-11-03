@@ -8,8 +8,13 @@ class URLshortnerController {
             const  originalUrl  = req.body.originalUrl;
             const  expirationDate  = req.body.expirationDate;
             const clientIp = req.ip;
-
+            const userId = req.user.id;
             console.log("original URL in controller ",originalUrl);
+            if(!userId){
+                console.log("User id :       -------- ",userId);
+                return res.status(statusCodes.UNAUTHORIZED).json({ error: 'Unauthorized' });
+            }
+            console.log("User id Authoruzed:       -------- ",userId);
             if (_.isEmpty(originalUrl)) {
                 return res.status(statusCodes.BAD_REQUEST).json({ error: 'Original URL is required' });
             }
@@ -20,7 +25,7 @@ class URLshortnerController {
                   expiryDate = new Date(currentDate.setDate(currentDate.getDate() + 30));
               }
              
-              const shortUrl = await URLshortnerService.createShortUrl(originalUrl, expiryDate, clientIp,);
+              const shortUrl = await URLshortnerService.createShortUrl(originalUrl, expiryDate, clientIp,userId);
               return res.status(statusCodes.OK).json({ shortUrl: shortUrl });
         } catch (error) {
             return res.status(statusCodes.INTERNAL_SERVER_ERROR).json({ error: error.message });

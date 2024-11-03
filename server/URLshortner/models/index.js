@@ -8,7 +8,7 @@ const modelName = 'server.URLshortner.models.index';
 
 class URLshortnerModel{
 
-    static async createShortUrl(originalUrl, shortUrl , expirationDate) {
+    static async createShortUrl(originalUrl, shortUrl , expirationDate, user_Id) {
         const functionName = 'createShortUrl';
         try {
             const result = await prisma.url.create({
@@ -16,7 +16,8 @@ class URLshortnerModel{
                     original_url: originalUrl,
                     short_url: shortUrl,
                     expirationDate: expirationDate,
-                    visitCount: 0
+                    visitCount: 0,
+                    userId: user_Id
                 }
             });
             if (!result) {
@@ -54,14 +55,18 @@ class URLshortnerModel{
         }
     }
 
-    static async getShortUrl(originalUrl) {
+    static async getShortUrl(originalUrl,user_Id) {
         const functionName = 'getShortUrl';
         try {
+            //get short url from db where original url and user id matches
+
             const result = await prisma.url.findFirst({
                 where: {
-                    original_url: originalUrl
+                    original_url: originalUrl,
+                    userId: user_Id
                 }
             });
+
           
             return result ? result : null;
         }catch(error) {

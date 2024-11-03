@@ -1,0 +1,17 @@
+###
+POST http://localhost:6000/api/v1/Users/create
+Content-Type: application/json
+
+{
+    "username": "Ahmed",
+    "email": "amroayman99@gmail.com",
+    "password": "123456"
+}
+###
+POST http://localhost:6000/api/v1/Users/login
+Content-Type: application/json
+
+{
+    "username": "Ahmed",
+    "password": "123456"
+} 

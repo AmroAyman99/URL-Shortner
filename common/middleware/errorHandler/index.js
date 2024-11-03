@@ -9,6 +9,14 @@ import { StatusCodes } from 'http-status-codes';
 const ErrorHandler = () => (error, req, res, next) => {
   const { status, message } = error;
   
+  if (status === StatusCodes.UNAUTHORIZED) {
+    // Handle unauthorized access
+    return res.status(StatusCodes.UNAUTHORIZED).json({
+      success: false,
+      message: 'Unauthorized access',
+      data: null,
+    });
+  }
   return res.status(status || StatusCodes.INTERNAL_SERVER_ERROR).json({
     success: false,
     message: message || 'Unexpected Error',

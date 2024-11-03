@@ -7,7 +7,7 @@ import URLshortnerMiddleware from   '../middleware/index.js';
 
 const serviceName = 'server.URLshortner.services.index';
 class URLshortnerService{
-    static async createShortUrl(originalUrl, expirationDate, clientIp) {
+    static async createShortUrl(originalUrl, expirationDate, clientIp,userId) {
         const functionName = 'createShortUrl';
         try {
 
@@ -24,7 +24,7 @@ class URLshortnerService{
 
             
             // Check if URL already exists
-            const existingShortUrl = await URLshortnerModel.getShortUrl(originalUrl);
+            const existingShortUrl = await URLshortnerModel.getShortUrl(originalUrl,userId);
             
             if (existingShortUrl) {
                 // Cache the short URL
@@ -47,7 +47,7 @@ class URLshortnerService{
             }
 
             // Create short URL
-            const URLshorted = await URLshortnerModel.createShortUrl(originalUrl, shortUrl , expiryDate);
+            const URLshorted = await URLshortnerModel.createShortUrl(originalUrl, shortUrl , expiryDate,userId);
             if (!URLshorted) {
                 throw new Error('Internal Server Error - shortUrl was not created');
             }

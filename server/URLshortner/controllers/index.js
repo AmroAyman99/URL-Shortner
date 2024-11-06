@@ -36,14 +36,35 @@ class URLshortnerController {
         try {
             const  shortUrl = req.params.shortURL;
             const clientIp = req.ip;
+            const userId = req.user.id;
+            if(!userId){
+                console.log("User id :       -------- ",userId);
+                return res.status(statusCodes.UNAUTHORIZED).json({ error: 'Unauthorized' });
+            }
             if (_.isEmpty(shortUrl)) {
                 return res.status(statusCodes.BAD_REQUEST).json({ error: 'Short URL is required' });
             }
-            const originalUrl = await URLshortnerService.getOriginalUrl(shortUrl, clientIp);
+            const originalUrl = await URLshortnerService.getOriginalUrl(shortUrl, clientIp,userId);
             if (_.isEmpty(originalUrl)) {
                 return res.status(statusCodes.NOT_FOUND).json({ error: 'URL not found' });
             }
             return res.redirect(originalUrl);
+        } catch (error) {
+            return res.status(statusCodes.INTERNAL_SERVER_ERROR).json({ error: error.message });
+        }
+    }
+    
+    //get all the urls
+    static async getURLs(req, res) {
+        try {
+            const userId = req.user.id;
+            if(!userId){
+                console.log("User id :       -------- ",userId);
+                return res.status(statusCodes.UNAUTHORIZED).json({ error: 'Unauthorized' });
+            }
+            console.log("User id Authoruzed:       -------- ",userId);
+            const urls = await URLshortnerService.getURLs(userId);
+            return res.status(statusCodes.OK).json({ urls: urls });
         } catch (error) {
             return res.status(statusCodes.INTERNAL_SERVER_ERROR).json({ error: error.message });
         }

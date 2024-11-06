@@ -11,12 +11,23 @@ router.post(
     Authorization.Authorize(),
     URLshortnerController.shortenURL
 );
-
+router.get(
+    '/getURLs',
+    Auth,
+    Authorization.Authorize(),
+    URLshortnerController.getURLs
+);
 router.get(
     '/:shortURL',
     Auth,
     Authorization.Authorize(),
     URLshortnerController.redirectURL
 );
+
+
+
+
+
+
 
 export default router;

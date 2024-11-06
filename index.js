@@ -30,7 +30,7 @@ app.use(morgan('dev'));
 const PORT = process.env.PORT || 6000;
 
 // Main Router
-app.use(API_BASE_PATH, mainRouter, ErrorHandler());
+app.use(API_BASE_PATH, mainRouter, ErrorHandler);
 
 
 app.set('trust proxy', true);

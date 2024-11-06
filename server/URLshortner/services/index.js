@@ -8,6 +8,7 @@ import URLshortnerMiddleware from   '../middleware/index.js';
 const serviceName = 'server.URLshortner.services.index';
 class URLshortnerService{
     static async createShortUrl(originalUrl, expirationDate, clientIp,userId) {
+
         const functionName = 'createShortUrl';
         try {
 
@@ -56,7 +57,7 @@ class URLshortnerService{
             await URLshortnerMiddleware.createAccessLog(clientIp, URLshorted.id);
 
             // Cache the short URL
-            await redisCache.setCache(URLshorted.short_url,URLshorted.original_url,URLshorted.id);
+            await redisCache.setCache(URLshorted.short_url, URLshorted.original_url, URLshorted.id, userId);
 
            
             // Return short URL
@@ -71,35 +72,45 @@ class URLshortnerService{
 
 
 
-    static async getOriginalUrl(shortUrl, clientIp) {
+    static async getOriginalUrl(shortUrl, clientIp,userId) {
+        console.log("shortUrl in getOriginalUrl ----------",shortUrl);
         const functionName = 'getOriginalUrl';
         try {
              // Check cache first
-            const cachedUrl = await redisCache.getCache(shortUrl);
+            const cachedUrl = await redisCache.getCache(shortUrl, userId);
             if (cachedUrl) {
                 // Increment visit count
+                const { value: originalUrl, urlId , user_id } = cachedUrl;
+                if (!URLshortnerMiddleware.checkPremission(user_id,userId)){
+                    throw new Error('Unauthorized');
+                }
+
                 await URLshortnerModel.incrementVisitCount(shortUrl);
-                const { value: originalUrl, urlId } = cachedUrl;
                 // Create access log
-                await URLshortnerMiddleware.createAccessLog(clientIp, urlId);
+                await URLshortnerMiddleware.createAccessLog(clientIp, urlId, cachedUrl.user_id);
                 // Return original URL
                 return originalUrl;
             }
 
-            const originalUrl = await URLshortnerModel.getOriginalUrl(shortUrl);
-            if (!originalUrl) {
+            const original_Url = await URLshortnerModel.getOriginalUrl(shortUrl,userId);
+            if (!original_Url) {
                 throw new Error('URL not found');
             }
 
+            if (!URLshortnerMiddleware.checkPremission(original_Url.userId, userId)){
+                throw new Error(' Unauthorized User : you are not allowed to access this shortURL');
+            }
+            
             // Increment visit count
-            await URLshortnerModel.incrementVisitCount(shortUrl);
+            await URLshortnerModel.incrementVisitCount(original_Url.short_url);
 
             // Cache the original URL
-            await redisCache.setCache(shortUrl, originalUrl);
+            await redisCache.setCache(shortUrl, original_Url.original_url, original_Url.id, original_Url.userId);
 
-            return originalUrl;
-        } catch (error) {
-            logger.error(serviceName, functionName, `Error: ${error.message}`);
+            return original_Url.original_url;
+        }
+        catch (error) {
+            logger.error(serviceName ,functionName, `Error GetOriginalUrl: ${error.message}`);
             throw error;
         }
     }
@@ -109,6 +120,17 @@ class URLshortnerService{
         try {
             const deletedURLs = await URLshortnerModel.deleteExpiredUrls();
             return deletedURLs;
+        } catch (error) {
+            logger.error(serviceName, functionName, `Error: ${error.message}`);
+            throw error;
+        }
+    }
+
+    static async getURLs(userId) {
+        const functionName = 'getURLs';
+        try {
+            const urls = await URLshortnerModel.getURLs(userId);
+            return urls;
         } catch (error) {
             logger.error(serviceName, functionName, `Error: ${error.message}`);
             throw error;

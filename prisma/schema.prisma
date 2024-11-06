@@ -27,6 +27,8 @@ model AccessLog {
   id        Int      @id @default(autoincrement())
   url       Url      @relation("UrlAccessLogs", fields: [urlId], references: [id])
   urlId     Int
+  user      User?    @relation("UserAccessLogs", fields: [userId], references: [id])
+  userId    Int?
   AccessTime DateTime @default(now())
   IPaddress String
 }
@@ -37,4 +39,5 @@ model User {
   email    String?   
   password String  
   urls     Url[]   @relation("UserUrls")
+  AccessLog AccessLog[] @relation("UserAccessLogs")
 }

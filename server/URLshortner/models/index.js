@@ -1,9 +1,9 @@
 import { PrismaClient } from '@prisma/client';
 import logger from '../../../common/utils/logger/index.js';
 import redisCache from '../../../common/helpers/cach.js'; // Import the cache helper
-
+import _ from 'lodash';
 const prisma = new PrismaClient()
-
+prisma.$connect();
 const modelName = 'server.URLshortner.models.index';
 
 class URLshortnerModel{
@@ -11,6 +11,7 @@ class URLshortnerModel{
     static async createShortUrl(originalUrl, shortUrl , expirationDate, user_Id) {
         const functionName = 'createShortUrl';
         try {
+            prisma.$connect();
             const result = await prisma.url.create({
                 data: {
                     original_url: originalUrl,
@@ -35,13 +36,13 @@ class URLshortnerModel{
         }
     }
     
-    static async getOriginalUrl(shortUrl, user_Id) {
+    static async getOriginalUrl(shortUrl) {
         const functionName = 'getOriginalUrl';
         try {
+            prisma.$connect();
             const result = await prisma.url.findUnique({
                 where: {
-                    short_url: shortUrl,
-                    userId: user_Id
+                    short_url: shortUrl
                 }
             });
             console.log("result in getOriginalUrl ----------",result);
@@ -59,6 +60,8 @@ class URLshortnerModel{
     static async getShortUrl(originalUrl,user_Id) {
         const functionName = 'getShortUrl';
         try {
+            prisma.$connect();
+
             //get short url from db where original url and user id matches
 
             const result = await prisma.url.findFirst({
@@ -84,6 +87,7 @@ class URLshortnerModel{
     static async incrementVisitCount(shortUrl) {
         const functionName = 'incrementVisitCount';
         try {
+            prisma.$connect();
             const result = await prisma.url.update({
                 where: {
                     short_url: shortUrl
@@ -94,6 +98,9 @@ class URLshortnerModel{
                     }
                 }
             });
+
+            await redisCache.incrementVisitCountInCache(shortUrl);
+
             return result ? result.visitCount : null;
         }catch(error) {
             logger.error(modelName, functionName, `Error: ${error.message}`);
@@ -105,12 +112,42 @@ class URLshortnerModel{
         }
     }
 
+
+    //Update a url record in db
+    static async updateShortUrl(shortUrl, user_Id, data) {
+        const functionName = 'updateShortUrl';
+        try {
+            prisma.$connect();
+            const result = await prisma.url.update({
+                where: {
+                    short_url: shortUrl,
+                    userId: user_Id
+                },
+                data: data
+            });
+
+            // Cache the updated short URL
+            await redisCache.updateCache(result.short_url, result.original_url, result.id, result.userId, result.visitCount, result.expirationDate);
+
+            return result ? result : null;
+        }catch(error) {
+            logger.error(modelName, functionName, `Error: ${error.message}`);
+            throw error;
+        }
+         finally {
+            // Disconnect Prisma
+            await prisma.$disconnect();
+        }
+    }
+
+
+
     //Delete expired URLs from the database and cache
     static async deleteExpiredUrls() {
         const functionName = 'deleteExpiredUrls';
         const currentDate = new Date();
         try {
-
+            prisma.$connect();
              // Fetch expired URLs before deletion
              const expiredUrls = await prisma.url.findMany({
                 where: {
@@ -142,8 +179,17 @@ class URLshortnerModel{
                     },
                 },
             });
+            
+            //delete expired urls from access logs
+            await prisma.accessLog.deleteMany({
+                where: {
+                    urlId: {
+                        in: urlIds,
+                    },
+                },
+            });
 
-            console.log(`Deleted ${result.count} expired URLs`);
+            // Delete the URL from the cache
 
             for (const url of expiredUrls) {
                 await redisCache.deleteCache(url.short_url);
@@ -159,10 +205,59 @@ class URLshortnerModel{
         }
     }
 
+    //Delete a URL record from the database 
+
+    static async deleteShortUrl(urlId, user_Id) {
+        const functionName = 'deleteShortUrl';
+        try {
+            console.log('shortUrl id IN MODEL ',urlId);
+            prisma.$connect();
+
+            const Url = await prisma.url.findUnique({
+                where: {
+                    id: urlId
+                }
+            });
+            
+            console.log(`Deleting URL from cache: ${Url}`);
+            if (_.isEmpty(Url)) {
+                throw new Error('URL  is not found');
+            }
+
+            // Delete access logs
+            await prisma.accessLog.deleteMany({
+                where: {
+                    urlId: Url.id,
+                },
+            });
+
+            // Delete the URL from the database
+            const result = await prisma.url.deleteMany({
+                where: {
+                    short_url: Url.short_url,
+                    userId: user_Id
+                }
+            });
+            // Delete the URL from the cache
+            await redisCache.deleteCache(Url.short_url);
+
+            return result ? result : null;
+        }catch(error) {
+            logger.error(modelName, functionName, `Error: ${error.message}`);
+            throw error;
+        }
+         finally {
+            // Disconnect Prisma
+            await prisma.$disconnect();
+        }
+    }
+
+
     //get all user URLs
     static async getURLs(user_Id) {
         const functionName = 'getURLs';
         try {
+            prisma.$connect();
             const result = await prisma.url.findMany({
                 where: {
                     userId: user_Id

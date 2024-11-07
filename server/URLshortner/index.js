@@ -5,24 +5,48 @@ import Authorization from '../../common/middleware/authorization/index.js';
 
 const router = express.Router();
 
-router.post(
-    '/shorten',
+router.get(
+    '/getURLS/:shortURL',
     Auth,
     Authorization.Authorize(),
-    URLshortnerController.shortenURL
+    URLshortnerController.getOneURL
 );
+
 router.get(
     '/getURLs',
     Auth,
     Authorization.Authorize(),
     URLshortnerController.getURLs
 );
+
 router.get(
     '/:shortURL',
-    Auth,
-    Authorization.Authorize(),
     URLshortnerController.redirectURL
 );
+
+router.post(
+    '/shorten',
+    Auth,
+    Authorization.Authorize(),
+    URLshortnerController.shortenURL
+);
+
+router.patch(
+    '/updateURL/:shortURL',
+    Auth,
+    Authorization.Authorize(),
+    URLshortnerController.updateURL
+);
+
+router.delete(
+    '/deleteURL/:shortURL',
+    Auth,
+    Authorization.Authorize(),
+    URLshortnerController.deleteURL
+);
+
+
+
 
 
 

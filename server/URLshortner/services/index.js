@@ -7,7 +7,8 @@ import URLshortnerMiddleware from   '../middleware/index.js';
 
 const serviceName = 'server.URLshortner.services.index';
 class URLshortnerService{
-    static async createShortUrl(originalUrl, expirationDate, clientIp,userId) {
+    // create a short url record in db - if exists return the existed short url
+    static async createShortUrl(originalUrl, expirationDate,userId) {
 
         const functionName = 'createShortUrl';
         try {
@@ -29,11 +30,8 @@ class URLshortnerService{
             
             if (existingShortUrl) {
                 // Cache the short URL
-                await redisCache.setCache(existingShortUrl.short_url,existingShortUrl.original_url,existingShortUrl.id);
-                // Increment visit count
-                await URLshortnerModel.incrementVisitCount(existingShortUrl.short_url);
-                // Create access log
-                await URLshortnerMiddleware.createAccessLog(clientIp, existingShortUrl.id);
+                await redisCache.setCache(existingShortUrl.short_url, existingShortUrl.original_url, existingShortUrl.id, existingShortUrl.userId, existingShortUrl.visitCount, existingShortUrl.expirationDate);
+            
                 
                 return existingShortUrl.short_url; // already exists in DB
             }
@@ -53,11 +51,10 @@ class URLshortnerService{
                 throw new Error('Internal Server Error - shortUrl was not created');
             }
 
-            // Create access log
-            await URLshortnerMiddleware.createAccessLog(clientIp, URLshorted.id);
+            
 
             // Cache the short URL
-            await redisCache.setCache(URLshorted.short_url, URLshorted.original_url, URLshorted.id, userId);
+            await redisCache.setCache(URLshorted.short_url, URLshorted.original_url, URLshorted.id, URLshorted.userId, URLshorted.visitCount, URLshorted.expirationDate);
 
            
             // Return short URL
@@ -71,49 +68,133 @@ class URLshortnerService{
     }
 
 
+// get original url from cache or db
 
-    static async getOriginalUrl(shortUrl, clientIp,userId) {
-        console.log("shortUrl in getOriginalUrl ----------",shortUrl);
+    static async getOriginalUrl(shortUrl,userId=null, clientIp=null) {
         const functionName = 'getOriginalUrl';
         try {
              // Check cache first
             const cachedUrl = await redisCache.getCache(shortUrl, userId);
-            if (cachedUrl) {
+            if (cachedUrl){
                 // Increment visit count
-                const { value: originalUrl, urlId , user_id } = cachedUrl;
-                if (!URLshortnerMiddleware.checkPremission(user_id,userId)){
-                    throw new Error('Unauthorized');
+                const { value: originalUrl, urlId , user_id, visitCount, expirationDate } = cachedUrl;
+
+                if (userId && !URLshortnerMiddleware.checkPremission(user_id,userId)){
+                    throw new Error(' here  in service Unauthorized User : you are not allowed to access this shortURL');
                 }
 
                 await URLshortnerModel.incrementVisitCount(shortUrl);
+
                 // Create access log
-                await URLshortnerMiddleware.createAccessLog(clientIp, urlId, cachedUrl.user_id);
-                // Return original URL
-                return originalUrl;
+                if(clientIp){
+                    await URLshortnerMiddleware.createAccessLog(clientIp, urlId, userId);
+                }
+                // Return Cached URL
+                return cachedUrl;
+                
             }
-
-            const original_Url = await URLshortnerModel.getOriginalUrl(shortUrl,userId);
+            // --------------------------- URL is never shortened before --------------------------------
+            const original_Url = await URLshortnerModel.getOriginalUrl(shortUrl);
+            
             if (!original_Url) {
-                throw new Error('URL not found');
+                throw new Error('ERROR URL not found');
             }
 
-            if (!URLshortnerMiddleware.checkPremission(original_Url.userId, userId)){
-                throw new Error(' Unauthorized User : you are not allowed to access this shortURL');
+            if (userId && !URLshortnerMiddleware.checkPremission(original_Url.userId, userId)){
+                throw new Error('Unauthorized User : you are not allowed to access this shortURL');
             }
             
             // Increment visit count
             await URLshortnerModel.incrementVisitCount(original_Url.short_url);
 
-            // Cache the original URL
-            await redisCache.setCache(shortUrl, original_Url.original_url, original_Url.id, original_Url.userId);
+            // Create access log
+            if(clientIp){
+                await URLshortnerMiddleware.createAccessLog(clientIp, original_Url.id, original_Url.userId);
+            }
 
-            return original_Url.original_url;
+            // Cache the original URL
+            await redisCache.setCache(shortUrl, original_Url.original_url, original_Url.id, original_Url.userId, original_Url.visitCount, original_Url.expirationDate);
+
+            return original_Url;
         }
         catch (error) {
-            logger.error(serviceName ,functionName, `Error GetOriginalUrl: ${error.message}`);
+            logger.error(serviceName ,functionName, `Error getOriginalUrl: ${error.message}`);
             throw error;
         }
     }
+
+    //Update a url record in db
+    static async updateShortUrl(shortUrl, userId, data) {
+        const functionName = 'updateShortUrl';
+        try {
+
+            if (data.originalUrl && !URLutils.isValidUrl(data.originalUrl)) {
+                throw new Error('Invalid URL');
+
+            }
+            if (data.expirationDate && !URLutils.isValidExpirationDate(data.expirationDate)) {
+                throw new Error('Invalid expiration date');
+            }
+
+            // Convert expiration date to Date object
+            data.expirationDate = new Date(data.expirationDate);
+
+            const original_Url = await URLshortnerModel.getOriginalUrl(shortUrl);
+            if (!original_Url) {
+                throw new Error('ERROR URL not found');
+            }
+            if (userId && !URLshortnerMiddleware.checkPremission(original_Url.userId, userId)){
+                throw new Error('Unauthorized User : you are not allowed to access this shortURL');
+            }
+
+            // Update short URL
+            const updatedURL = await URLshortnerModel.updateShortUrl(shortUrl, userId, data);
+            if (!updatedURL) {
+                throw new Error('Internal Server Error - Url data was not updated');
+            }
+
+
+            // Return updated short URL
+            return updatedURL;
+        } catch (error) {
+            logger.error(serviceName, functionName, `Error: ${error.message}`);
+            throw error;
+        }
+    }
+
+
+// delete a url record from db and cache
+
+    static async deleteShortUrl(shortUrl, userId) {
+        const functionName = 'deleteShortUrl';
+        try {
+
+            const original_Url = await URLshortnerModel.getOriginalUrl(shortUrl);
+            console.log('original_Url',original_Url);
+            if (!original_Url) {
+                throw new Error('ERROR URL not found');
+            }
+            if (userId!==original_Url.userId) {
+                throw new Error('Unauthorized User : you are not allowed to access this shortURL');
+            }
+
+            const urlId = original_Url.id;
+            // Delete short URL from DB
+            const deletedURL = await URLshortnerModel.deleteShortUrl(urlId, userId);
+            if (!deletedURL) {
+                throw new Error('Internal Server Error - Url was not deleted');
+            }
+
+
+            return deletedURL;
+        } catch (error) {
+            logger.error(serviceName, functionName, `Error: ${error.message}`);
+            throw error;
+        }
+    }
+
+
+// delete expired urls from db and cache
 
     static async deleteExpiredURLs() {
         const functionName = 'deleteExpiredURLs';
@@ -126,6 +207,7 @@ class URLshortnerService{
         }
     }
 
+// get all the urls for a user
     static async getURLs(userId) {
         const functionName = 'getURLs';
         try {

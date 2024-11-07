@@ -8,13 +8,13 @@ import UsersService from "../../../server/User/services/index.js";
 
 const serviceName = "middleware.auth";
 const Auth = async (req, res, next) => {
-    const JWT_SECRET = "secret";
+    
 
     const functionName = `Auth`;
     logger.info(serviceName, functionName, `Checking if user is authenticated`);
     try {
         let token = req.headers["authorization"];
-        //console.log(token);
+
         logger.info(serviceName, functionName, `Token: ${token}`);
         if (!token){
             throw new ErrorResponse(
@@ -30,7 +30,7 @@ const Auth = async (req, res, next) => {
 
         token = token.split(" ")[1];
 
-        const decoded = jwt.verify(token, JWT_SECRET);
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
         logger.info(serviceName, functionName, `Decoded token: ${JSON.stringify(decoded)}`);
         const userId = _.get(decoded, "userId", null);
@@ -53,7 +53,7 @@ const Auth = async (req, res, next) => {
         delete user.password
         req.user = user
                              
-        return next();
+        next();
     }
     catch (error) {
         logger.error(serviceName, functionName, `User is not authorized`);

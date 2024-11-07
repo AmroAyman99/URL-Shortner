@@ -11,6 +11,8 @@ class AccessLogModel{
     static async createAccessLog(clientIp, url_Id, user_Id) {
         const functionName = 'createAccessLog';
         try {
+            prisma.$connect();
+
             // Create access log
             const result = await prisma.accessLog.create({
                 data: {

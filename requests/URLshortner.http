@@ -1,16 +1,29 @@
 ### Create a new shortened URL
 POST http://localhost:6000/api/v1/URLshortner/shorten
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhdCI6MTczMDY1OTA0MCwiZXhwIjoxNzMwNzQ1NDQwfQ.v44M2dDpKYnnwSw7Uem61Xu771ZSAxNTjwx2Kcom4MI
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhdCI6MTczMDkzOTcwNywiZXhwIjoxNzMxMDI2MTA3fQ.8S4rWm1KyrVx7itRvZ8udacPFAYc9FYJ9gYzYCMs880
 
 {
     "originalUrl": "https://www.facebook.com/",
     "expirationDate": "2024-11-20"
 }
 ###
-GET http://localhost:6000/api/v1/URLshortner/S1A2o14Ri
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhdCI6MTczMDY1OTA0MCwiZXhwIjoxNzMwNzQ1NDQwfQ.v44M2dDpKYnnwSw7Uem61Xu771ZSAxNTjwx2Kcom4MI
-
+GET http://localhost:6000/api/v1/URLshortner/GlCY_wtAb
 ###
 GET http://localhost:6000/api/v1/URLshortner/getURLs
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImlhdCI6MTczMDY1NTA3MSwiZXhwIjoxNzMwNzQxNDcxfQ.Qld5OXYiYjhGloDIpDyiVRYkEnbJHAGLka0huGjXzZQ
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhdCI6MTczMDkzOTcwNywiZXhwIjoxNzMxMDI2MTA3fQ.8S4rWm1KyrVx7itRvZ8udacPFAYc9FYJ9gYzYCMs880
+###
+GET http://localhost:6000/api/v1/URLshortner/getURLs/S1A2o14Ri
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhdCI6MTczMDkzOTcwNywiZXhwIjoxNzMxMDI2MTA3fQ.8S4rWm1KyrVx7itRvZ8udacPFAYc9FYJ9gYzYCMs880
+###
+PATCH http://localhost:6000/api/v1/URLshortner/updateURL/S1A2o14Ri
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhdCI6MTczMDkzOTcwNywiZXhwIjoxNzMxMDI2MTA3fQ.8S4rWm1KyrVx7itRvZ8udacPFAYc9FYJ9gYzYCMs880
+Content-Type: application/json
+
+{
+    "original_url" : "https://www.Instagram.com/",
+    "expirationDate": "2024-11-16"
+}
+###
+DELETE http://localhost:6000/api/v1/URLshortner/deleteURL/GlCY_wtAb
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImlhdCI6MTczMDk1NjgzNywiZXhwIjoxNzMxMDQzMjM3fQ.lk-4FPah1T6BJbi3sz_H01EfARgeg1f4zPMSTgc0XtM

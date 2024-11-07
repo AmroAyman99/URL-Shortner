@@ -25,12 +25,17 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(morgan('dev'));
 
+app.use((req, res, next) => {
+    console.log(`Received request: ${req.method} ${req.url}`);
+    next();
+});
 
 // Start the server
 const PORT = process.env.PORT || 6000;
 
 // Main Router
-app.use(API_BASE_PATH, mainRouter, ErrorHandler);
+app.use(API_BASE_PATH, mainRouter, ErrorHandler());
+
 
 
 app.set('trust proxy', true);

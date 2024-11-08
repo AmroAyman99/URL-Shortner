@@ -8,12 +8,12 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhd
     "expirationDate": "2024-11-20"
 }
 ###
-GET http://localhost:6000/api/v1/URLshortner/GlCY_wtAb
+GET http://localhost:6000/api/v1/URLshortner/W0DuARRXf
 ###
 GET http://localhost:6000/api/v1/URLshortner/getURLs
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhdCI6MTczMDkzOTcwNywiZXhwIjoxNzMxMDI2MTA3fQ.8S4rWm1KyrVx7itRvZ8udacPFAYc9FYJ9gYzYCMs880
 ###
-GET http://localhost:6000/api/v1/URLshortner/getURLs/S1A2o14Ri
+GET http://localhost:6000/api/v1/URLshortner/getURLs/W0DuARRXf
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhdCI6MTczMDkzOTcwNywiZXhwIjoxNzMxMDI2MTA3fQ.8S4rWm1KyrVx7itRvZ8udacPFAYc9FYJ9gYzYCMs880
 ###
 PATCH http://localhost:6000/api/v1/URLshortner/updateURL/S1A2o14Ri

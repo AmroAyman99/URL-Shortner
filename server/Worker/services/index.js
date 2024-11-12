@@ -29,7 +29,7 @@ class WorkerService {
             if (task) {
               await this.processMessage(JSON.parse(task));
             } else {
-              await new Promise(resolve => setTimeout(resolve, 10000)); // Wait for 1 second if the queue is empty
+              await new Promise(resolve => setTimeout(resolve, 10000)); // Wait for 10 second if the queue is empty
             }
           } catch (error) {
             logger.error(serviceName, 'startWorker', error.message);

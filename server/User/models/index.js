@@ -11,7 +11,7 @@ class UsersModel {
     static async signUp(userData) {
         const functionName = 'signUp';
         try {
-            prisma.$connect();
+            await prisma.$connect();
 
             const result = await prisma.user.create({
                 data: {
@@ -38,7 +38,7 @@ class UsersModel {
     static async findUserWithPassword(user_name) {
         const functionName = 'findUserWithPassword';
         try {
-            prisma.$connect();
+            await prisma.$connect();
 
             const user = await prisma.user.findUnique({
                 where: {
@@ -60,7 +60,7 @@ class UsersModel {
     static async findUserById(user_id) {
         const functionName = 'findUserById';
         try {
-            prisma.$connect();
+            await prisma.$connect();
 
             const user = await prisma.user.findUnique({
                 where: {

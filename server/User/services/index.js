@@ -12,7 +12,7 @@ class UsersService {
         const functionName = 'login';
         try {
             const user = await UsersModel.findUserWithPassword(username); // find user by username
-            console.log(`user: ${user} - username: ${username}`);
+            console.log('user:', user);
             if (!user) {
                 throw new Error('Invalid username.');
             }

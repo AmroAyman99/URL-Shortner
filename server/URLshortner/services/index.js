@@ -1,10 +1,9 @@
 import URLshortnerModel from '../models/index.js';
 import logger from '../../../common/utils/logger/index.js';
 import URLutils from '../../../common/utils/urlUtils/index.js';
-import redisCache from '../../../common/helpers/cach.js';
-import AccessLogModel from '../models/accessLog.js';
+import redisCache from '../../../common/helpers/Redis/cach.js';
 import URLshortnerMiddleware from   '../middleware/index.js';
-
+import RedisMessageQueue from "../../../common/helpers/Redis/messageQueue.js";
 const serviceName = 'server.URLshortner.services.index';
 class URLshortnerService{
     // create a short url record in db - if exists return the existed short url
@@ -76,14 +75,17 @@ class URLshortnerService{
              // Check cache first
             const cachedUrl = await redisCache.getCache(shortUrl, userId);
             if (cachedUrl){
-                // Increment visit count
                 const { value: originalUrl, urlId , user_id, visitCount, expirationDate } = cachedUrl;
-
+                
                 if (userId && !URLshortnerMiddleware.checkPremission(user_id,userId)){
-                    throw new Error(' here  in service Unauthorized User : you are not allowed to access this shortURL');
+                    throw new Error('Unauthorized User : you are not allowed to access this shortURL');
                 }
+                
+                // Increment visit count
+                // publish a message to the queue
+                const message = {message:`URL with id ${urlId} was visited`,shortUrl:shortUrl};
+                RedisMessageQueue.publishMessage(JSON.stringify(message));
 
-                await URLshortnerModel.incrementVisitCount(shortUrl);
 
                 // Create access log
                 if(clientIp){
@@ -105,7 +107,10 @@ class URLshortnerService{
             }
             
             // Increment visit count
-            await URLshortnerModel.incrementVisitCount(original_Url.short_url);
+            const message = {message:`URL with id ${original_Url.id} was visited `,shortUrl:shortUrl};
+            const publishMessage= await RedisMessageQueue.publishMessage(JSON.stringify(message));
+            console.log('----------- publishMessage: --------- ')
+            console.log(publishMessage);
 
             // Create access log
             if(clientIp){

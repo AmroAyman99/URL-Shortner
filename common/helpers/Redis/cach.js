@@ -1,5 +1,5 @@
-import { connectRedis } from '../config/redis.js'; 
-import logger from '../utils/logger/index.js';
+import { connectRedis } from '../../config/redis.js'; 
+import logger from '../../utils/logger/index.js';
 let client;
 
     (async () => {

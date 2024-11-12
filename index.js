@@ -9,7 +9,7 @@ import ErrorHandler from "./common/middleware/errorHandler/index.js";
 import mainRouter from './server/index.js';
 import cron from 'node-cron';
 import URLshortnerService from './server/URLshortner/services/index.js';
-
+import {connectDatabase} from './common/config/db.js';
 const serviceName = 'URLshortner.index';
 
 // Initialize the app
@@ -40,10 +40,13 @@ app.use(API_BASE_PATH, mainRouter, ErrorHandler());
 
 app.set('trust proxy', true);
 
-app.listen(PORT, () => {
-    logger.info(serviceName, 'app.listen', `Server is running on PORT ${PORT}`);
+(async () => {
+    await connectDatabase();
+  
+    app.listen(PORT, () => {
+        logger.info(serviceName, 'app.listen', `Server is running on PORT ${PORT}`);
     });
-
+  })();
 
 // Schedule the cron job to run daily at midnight
 cron.schedule('0 0 * * *', async () => {

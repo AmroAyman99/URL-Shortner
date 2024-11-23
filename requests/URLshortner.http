@@ -1,17 +1,17 @@
 ### Create a new shortened URL
 POST http://localhost:6000/api/v1/URLshortner/shorten
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhdCI6MTczMDkzOTcwNywiZXhwIjoxNzMxMDI2MTA3fQ.8S4rWm1KyrVx7itRvZ8udacPFAYc9FYJ9gYzYCMs880
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImlhdCI6MTczMjMzMTYzNSwiZXhwIjoxNzMyNDE4MDM1fQ.7lxttQpoUU5tJKd9fRS5Ig2nBT0COa0WgM2qlRpDGfQ
 
 {
     "originalUrl": "https://www.facebook.com/",
-    "expirationDate": "2024-11-20"
+    "expirationDate": "2024-11-29"
 }
 ###
-GET http://localhost:6000/api/v1/URLshortner/n-pWr9yBN
+GET http://localhost:6000/api/v1/URLshortner/83lEhCBl2
 ###
 GET http://localhost:6000/api/v1/URLshortner/getURLs
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhdCI6MTczMDkzOTcwNywiZXhwIjoxNzMxMDI2MTA3fQ.8S4rWm1KyrVx7itRvZ8udacPFAYc9FYJ9gYzYCMs880
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImlhdCI6MTczMjMzMTYzNSwiZXhwIjoxNzMyNDE4MDM1fQ.7lxttQpoUU5tJKd9fRS5Ig2nBT0COa0WgM2qlRpDGfQ
 ###
 GET http://localhost:6000/api/v1/URLshortner/getURLs/W0DuARRXf
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhdCI6MTczMDkzOTcwNywiZXhwIjoxNzMxMDI2MTA3fQ.8S4rWm1KyrVx7itRvZ8udacPFAYc9FYJ9gYzYCMs880

@@ -1,0 +1,31 @@
+services:
+  app:
+    build: .
+    ports:
+      - "6000:6000"
+    environment:
+      REDIS_PORT: 10887
+      DATABASE_URL: "mysql://root:root@127.0.0.1:3308/urlshortner"
+      DB_USER: root
+      DB_PASSWORD: root
+    network_mode: "host"
+    depends_on:
+      - redis   
+      - db
+
+  redis:
+    image: "redis:alpine"
+    ports:
+      - "10887:10887"
+    network_mode: "host"
+
+  db:
+    image: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: urlshortner
+    ports:
+      - "3308:3306"
+    volumes:
+      - ../mysql/data:/var/lib/mysql
+      - ../urlshortner.sql:/docker-entrypoint-initdb.d/urlshortner.sql

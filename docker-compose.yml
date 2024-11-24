@@ -1,14 +1,40 @@
 services:
-  app:
+  app1:
     build: .
     ports:
       - "6000:6000"
     environment:
       REDIS_PORT: 10887
-      DATABASE_URL: "mysql://root:root@127.0.0.1:3308/urlshortner"
+      DATABASE_URL: "mysql://root:root@db:3306/urlshortner"
       DB_USER: root
       DB_PASSWORD: root
-    network_mode: "host"
+      DOCKER_ENV: "APP 1"
+    depends_on:
+      - redis   
+      - db
+  app2:
+    build: .
+    ports:
+      - "6001:6000"
+    environment:
+      REDIS_PORT: 10887
+      DATABASE_URL: "mysql://root:root@db:3306/urlshortner"
+      DB_USER: root
+      DB_PASSWORD: root
+      DOCKER_ENV: "APP 2"
+    depends_on:
+      - redis   
+      - db
+  app3:
+    build: .
+    ports:
+      - "6002:6000"
+    environment:
+      REDIS_PORT: 10887
+      DATABASE_URL: "mysql://root:root@db:3306/urlshortner"
+      DB_USER: root
+      DB_PASSWORD: root
+      DOCKER_ENV: "APP 3"
     depends_on:
       - redis   
       - db

@@ -6,6 +6,8 @@ import logger from '../../../common/utils/logger/index.js';
 class URLshortnerController {
     static async shortenURL(req, res) {
         try {
+            const DOCKER_ENV = process.env.DOCKER_ENV || 'UNDEFINED';
+            logger.info("DOCKER_ENV:       -------- ", DOCKER_ENV);
             const  originalUrl  = req.body.originalUrl;
             const  expirationDate  = req.body.expirationDate;
             const userId = req.user.id;
@@ -24,7 +26,7 @@ class URLshortnerController {
               }
              
               const shortUrl = await URLshortnerService.createShortUrl(originalUrl, expiryDate, userId);
-              return res.status(statusCodes.OK).json({ shortUrl: shortUrl });
+              return res.status(statusCodes.OK).json({ shortUrl: shortUrl, DOCKER_ENV: DOCKER_ENV });
         } catch (error) {
             return res.status(statusCodes.INTERNAL_SERVER_ERROR).json({ error: error.message });
         }
